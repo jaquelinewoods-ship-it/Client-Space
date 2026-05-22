@@ -1,0 +1,1 @@
+# No third-party Python dependencies; refresh_delivery_tickets.py uses the standard library.
