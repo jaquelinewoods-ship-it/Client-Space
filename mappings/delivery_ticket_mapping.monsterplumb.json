@@ -1,0 +1,163 @@
+{
+  "asana_section_gid": "1214352266832449",
+  "delivery_ticket_mapping": {
+    "MPRB-10": [
+      "MPCAAT-22"
+    ],
+    "MPRB-11": [
+      "MPCAAT-23"
+    ],
+    "MPRB-12": [
+      "MPCAAT-24"
+    ],
+    "MPRB-13": [
+      "MPBPINT-12"
+    ],
+    "MPRB-14": [
+      "MPCAAT-12",
+      "MPCAAT-26",
+      "MPCAAT-27",
+      "MPCAAT-28",
+      "MPCAAT-29",
+      "MPCAAT-30",
+      "MPCAAT-31",
+      "MPCAAT-32"
+    ],
+    "MPRB-15": [
+      "MPCAAT-30"
+    ],
+    "MPRB-16": [
+      "MPCAAT-31"
+    ],
+    "MPRB-17": [
+      "MPCAAT-35"
+    ],
+    "MPRB-25": [
+      "MPMACD-3",
+      "MPMACD-4",
+      "MPMACD-5"
+    ],
+    "MPRB-26": [
+      "MPCAAT-16"
+    ],
+    "MPRB-27": [
+      "MPMACD-7"
+    ],
+    "MPRB-28": [
+      "MPMACD-9"
+    ],
+    "MPRB-29": [
+      "MPMACD-10"
+    ],
+    "MPRB-30": [
+      "MPMACD-6"
+    ],
+    "MPRB-31": [
+      "MPMACD-11"
+    ],
+    "MPRB-32": [
+      "MPMACD-1"
+    ],
+    "MPRB-33": [
+      "MPMA-2",
+      "MPMACD-12"
+    ],
+    "MPRB-36": [
+      "MPMACD-13"
+    ],
+    "MPRB-37": [
+      "MPMACD-8"
+    ],
+    "MPRB-38": [
+      "MPCAAT-60",
+      "MPCAAT-61",
+      "MPCAAT-62",
+      "MPCAAT-63",
+      "MPCAAT-64",
+      "MPCAAT-65",
+      "MPCAAT-66",
+      "MPCAAT-67",
+      "MPCAAT-68",
+      "MPCAAT-72"
+    ],
+    "MPRB-39": [
+      "MPACC-4",
+      "MPACC-7"
+    ],
+    "MPRB-40": [
+      "MPACC-6",
+      "MPACC-7"
+    ],
+    "MPRB-41": [
+      "MPACC-5",
+      "MPACC-7"
+    ],
+    "MPRB-43": [
+      "MPTC-8"
+    ],
+    "MPRB-44": [
+      "MPBPINT-1"
+    ],
+    "MPRB-45": [
+      "MPBPINT-1"
+    ],
+    "MPRB-46": [
+      "MPBPINT-3"
+    ],
+    "MPRB-47": [
+      "MPBPINT-17"
+    ],
+    "MPRB-48": [
+      "MPBPINT-5"
+    ],
+    "MPRB-49": [
+      "MPBPINT-6"
+    ],
+    "MPRB-50": [
+      "MPBPINT-7"
+    ],
+    "MPRB-51": [
+      "MPBPINT-8"
+    ],
+    "MPRB-52": [
+      "MPBPINT-9"
+    ],
+    "MPRB-53": [
+      "MPBPINT-10"
+    ],
+    "MPRB-54": [
+      "MPBPINT-23"
+    ],
+    "MPRB-55": [
+      "MPBPINT-12"
+    ],
+    "MPRB-56": [
+      "MPBPINT-24"
+    ],
+    "MPRB-57": [
+      "MPBPINT-14"
+    ],
+    "MPRB-58": [
+      "MPBPINT-15"
+    ],
+    "MPRB-7": [
+      "MPCAAT-16",
+      "MPCAAT-17",
+      "MPCAAT-18"
+    ],
+    "MPRB-8": [
+      "MPCAAT-20"
+    ],
+    "MPRB-9": [
+      "MPCAAT-21"
+    ]
+  },
+  "jira_base_url": "https://rixxo-hq.atlassian.net",
+  "skip_requirements": [
+    "MPRB-18",
+    "MPRB-24",
+    "MPRB-34",
+    "MPRB-35",
+    "MPRB-42"
+  ]
+}
