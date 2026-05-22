@@ -25,7 +25,7 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           ASANA_PAT: ${{ secrets.ASANA_PAT }}
-        run: python clients/monsterplumb/asana-refresh/scripts/refresh_delivery_tickets.py --config clients/monsterplumb/asana-refresh/mappings/delivery_ticket_mapping.monsterplumb.json --output-dir clients/monsterplumb/asana-refresh/run-output
+        run: python clients/monsterplumb/asana-refresh/scripts/refresh_delivery_tickets.py
 
       - name: Upload run report
         if: always()
