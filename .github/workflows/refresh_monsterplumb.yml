@@ -18,19 +18,19 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r clients/monsterplumb/asana-refresh/requirements.txt
 
       - name: Run refresh script
         env:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
           ASANA_PAT: ${{ secrets.ASANA_PAT }}
-        run: python scripts/refresh_delivery_tickets.py
+        run: python clients/monsterplumb/asana-refresh/scripts/refresh_delivery_tickets.py --config clients/monsterplumb/asana-refresh/mappings/delivery_ticket_mapping.monsterplumb.json --output-dir clients/monsterplumb/asana-refresh/run-output
 
       - name: Upload run report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: monsterplumb-refresh-report
-          path: run-output/refresh_delivery_tickets_report.json
+          path: clients/monsterplumb/asana-refresh/run-output/refresh_delivery_tickets_report.json
           if-no-files-found: ignore
