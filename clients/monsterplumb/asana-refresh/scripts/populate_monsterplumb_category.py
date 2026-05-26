@@ -77,6 +77,10 @@ def asana_url(path: str) -> str:
     return f"https://app.asana.com/api/1.0{path}"
 
 
+def normalize_option_name(value: str) -> str:
+    return re.sub(r"\s+", " ", value).strip().casefold()
+
+
 def paginated_get(path: str, headers: dict[str, str]) -> list[dict[str, Any]]:
     url = asana_url(path)
     results: list[dict[str, Any]] = []
@@ -96,11 +100,19 @@ def get_category_field(headers: dict[str, str]) -> tuple[str, dict[str, str]]:
         field = setting.get("custom_field") or {}
         if field.get("name") != "Category":
             continue
-        option_gids = {option["name"]: option["gid"] for option in field.get("enum_options", []) if option.get("enabled", True)}
-        missing_options = [name for name in CATEGORY_MAPPING if name not in option_gids]
+        option_gids_by_normalized_name = {
+            normalize_option_name(option["name"]): option["gid"]
+            for option in field.get("enum_options", [])
+            if option.get("enabled", True)
+        }
+        missing_options = [
+            name for name in CATEGORY_MAPPING if normalize_option_name(name) not in option_gids_by_normalized_name
+        ]
         if missing_options:
             raise AsanaError(f"Category field is missing expected option(s): {', '.join(missing_options)}")
-        return field["gid"], option_gids
+        return field["gid"], {
+            name: option_gids_by_normalized_name[normalize_option_name(name)] for name in CATEGORY_MAPPING
+        }
     raise AsanaError("Could not find a custom field named Category on the Asana project")
 
 

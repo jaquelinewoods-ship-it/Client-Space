@@ -172,10 +172,10 @@ def fetch_all_delivery_tickets(
 def build_delivery_block(tickets: list[dict[str, str]], timestamp: str) -> str:
     lines = ["<hr/>", "<h2>Delivery Tickets</h2>", "<ul>"]
     for ticket in tickets:
-        key = html.escape(ticket["key"])
+        key = html.escape(ticket["key"], quote=False)
         url = html.escape(ticket["url"], quote=True)
-        summary = html.escape(ticket["summary"])
-        status = html.escape(ticket["status"])
+        summary = html.escape(ticket["summary"], quote=False)
+        status = html.escape(ticket["status"], quote=False)
         lines.append(
             f'<li><a href="{url}">{key}</a> · {summary} · <strong>{status}</strong></li>'
         )
