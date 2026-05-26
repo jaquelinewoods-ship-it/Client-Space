@@ -178,7 +178,7 @@ def build_delivery_block(tickets: list[dict[str, str]], timestamp: str) -> str:
         status = html.escape(ticket["status"])
         assignee = html.escape(ticket["assignee"])
         lines.append(
-            f'<li><a href="{url}">{key}</a> &#8212; {summary} &#8212; <strong>{status}</strong> &#8212; {assignee}</li>'
+            f'<li><a href="{url}">{key}</a> · {summary} · <strong>{status}</strong> · {assignee}</li>'
         )
     lines.extend(["</ul>", f"<em>Last updated: {html.escape(timestamp)}</em>"])
     return "\n".join(lines)
