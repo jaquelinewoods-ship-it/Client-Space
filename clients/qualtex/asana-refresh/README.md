@@ -1,8 +1,27 @@
-# Qualtex — Jira Polaris to Asana Migration
+# Qualtex — Jira Polaris to Asana Migration & Refresh
 
-Migrates requirements from Jira Polaris board `QGOMR` into the Qualtex Asana project.
+Migrates and refreshes requirements from Jira Polaris board `QGOMR` in the Qualtex Asana project.
 
 **Pattern:** Programme-based grouping (P1–P36). See `clients/monsterplumb/asana-refresh/` for the milestone-based equivalent used on MonsterPlumb.
+
+---
+
+## Folder structure
+
+```
+asana-refresh/
+├── .github/
+│   └── workflows/
+│       └── refresh_qualtex.yml       # Daily GitHub Actions workflow
+├── mappings/
+│   └── delivery_ticket_mapping.qualtex.json  # QGOMR → QGOMD links
+├── scripts/
+│   ├── migrate.py                    # One-time migration: Jira → Asana
+│   └── refresh_delivery_tickets.py  # Daily refresh: QGOMD statuses → Asana
+├── .gitignore
+├── README.md
+└── requirements.txt
+```
 
 ---
 
@@ -10,61 +29,55 @@ Migrates requirements from Jira Polaris board `QGOMR` into the Qualtex Asana pro
 
 ```bash
 cd clients/qualtex/asana-refresh
-pip install requests
+pip install -r requirements.txt
 ```
 
 Set environment variables:
 
 ```bash
 export JIRA_EMAIL=your@rixxo.com
-export JIRA_API_TOKEN=your_jira_api_token   # from id.atlassian.net → Security → API tokens
-export ASANA_PAT=your_asana_pat             # from app.asana.com → My Settings → Apps → Personal Access Token
+export JIRA_API_TOKEN=your_jira_api_token   # id.atlassian.net → Security → API tokens
+export ASANA_PAT=your_asana_pat             # app.asana.com → My Settings → Apps → Personal Access Token
 ```
 
 ---
 
-## Usage
+## Daily refresh (delivery ticket statuses)
 
-### Dry run (no writes — safe to run anytime)
+Runs automatically at 07:00 UTC via GitHub Actions. Uses secrets `JIRA_EMAIL`, `JIRA_API_TOKEN`, `ASANA_PAT` set on the repo.
+
+To run manually:
+
 ```bash
-python3 migrate.py --dry-run
+# Dry run
+python scripts/refresh_delivery_tickets.py --dry-run
+
+# Live run
+python scripts/refresh_delivery_tickets.py
 ```
 
-### Full migration
-```bash
-python3 migrate.py
-```
+The script reads `mappings/delivery_ticket_mapping.qualtex.json`, fetches the current status of each QGOMD ticket from Jira, and writes a Delivery Tickets block into each matched Asana task. It is safe to re-run — existing blocks are replaced, not duplicated.
 
-### Migrate a specific status (default is "Awaiting Client Approval")
-```bash
-python3 migrate.py --status "Needs a Brief"
-```
-
-### Resume after interruption
-```bash
-python3 migrate.py --start-from QGOMR-80
-```
-
-The script is **idempotent** — it checks for existing task names before creating and skips duplicates, so it's safe to re-run.
+**Adding new delivery ticket links:** Edit `delivery_ticket_mapping.qualtex.json` and add the QGOMR key with its QGOMD ticket(s).
 
 ---
 
-## What it migrates
+## One-time migration (Jira → Asana)
 
-| Filter | Value |
-|---|---|
-| Jira project | `QGOMR` |
-| Status | `Awaiting Client Approval` (default) |
-| Excludes | Done, Needs a Brief, archived items |
+The initial migration of 70 requirements (QGOMR-54 to QGOMR-123) was run on 2026-05-29. Use `migrate.py` if requirements are added to the Jira board or for future client migrations.
 
-| Field | Source |
-|---|---|
-| Task name | Jira summary |
-| Notes | Jira key + link to Polaris board |
-| Requirement Status | Mapped from Jira status |
-| Programme | Extracted from `**Programme:**` in Jira description |
+```bash
+# Dry run
+python scripts/migrate.py --dry-run
 
-Fields left blank for manual population post-migration: **MoSCoW**, **Business Value**, VHO fields, QA Results, Target Start/End.
+# Migrate a specific status (default: Awaiting Client Approval)
+python scripts/migrate.py --status "Awaiting Client Approval"
+
+# Resume after interruption
+python scripts/migrate.py --start-from QGOMR-80
+```
+
+The script is idempotent — skips tasks already present in Asana by name.
 
 ---
 
@@ -77,21 +90,12 @@ Fields left blank for manual population post-migration: **MoSCoW**, **Business V
 | Requirement Status field | `1211730436704714` |
 | Programme field | `1215246319835982` |
 
-Programme option GIDs are hardcoded in `migrate.py` — update if new programmes are added to the Asana field.
-
 ---
 
-## Adding new programmes
+## GitHub Actions secrets required
 
-1. Add the new option to the Programme field in Asana
-2. Copy the GID from the field editor URL or API
-3. Add it to `PROGRAMME_OPTION_GIDS` in `migrate.py`
+Set these on the `jaquelinewoods-ship-it/Client-Space` repo (Settings → Secrets → Actions):
 
----
-
-## Initial migration
-
-The initial migration of 70 requirements (QGOMR-54 to QGOMR-123) was performed manually via Claude on 2026-05-29. This script is provided for:
-- Re-running if requirements are added to the Jira board
-- Migrating requirements in other statuses
-- Reference for future client board migrations
+- `JIRA_EMAIL`
+- `JIRA_API_TOKEN`
+- `ASANA_PAT`
