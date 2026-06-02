@@ -251,7 +251,20 @@ def build_task(issue: dict) -> dict:
     status_gid = STATUS_MAP.get(jira_status, STATUS_AWAITING_CLIENT_APPROVAL)
 
     jira_url = f"{JIRA_BASE_URL}/browse/{key}"
+
+    # Build full plain-text description from Jira content
+    # CRITICAL: Always include the full description — never skip or truncate it.
+    # The description is the primary content of the requirement and must be preserved in Asana.
+    desc_text = _adf_to_text(desc) if isinstance(desc, dict) else (desc or "")
+    # Strip markdown formatting for plain text compatibility
+    desc_text = re.sub(r"\*\*(.+?)\*\*", r"\1", desc_text)   # bold
+    desc_text = re.sub(r"#{1,3}\s+", "", desc_text)           # headers
+    desc_text = re.sub(r"`(.+?)`", r"\1", desc_text)          # inline code
+    desc_text = desc_text.strip()
+
     notes = f"Jira: {key} — {jira_url}"
+    if desc_text:
+        notes += f"\n\n{desc_text}"
 
     if not programme_gid and programme:
         notes += f"\n\n⚠️ Programme {programme} has no matching Asana option — set manually."
