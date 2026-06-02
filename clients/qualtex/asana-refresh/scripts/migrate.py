@@ -252,14 +252,10 @@ def build_task(issue: dict) -> dict:
 
     jira_url = f"{JIRA_BASE_URL}/browse/{key}"
 
-    # Build full plain-text description from Jira content
-    # CRITICAL: Always include the full description — never skip or truncate it.
-    # The description is the primary content of the requirement and must be preserved in Asana.
+    # CRITICAL: Copy the Jira description verbatim — word for word, no rewriting, no summarising.
+    # The description is the client-facing requirement record and must be preserved exactly as written.
+    # ADF content is converted to plain text; markdown-style descriptions are used as-is.
     desc_text = _adf_to_text(desc) if isinstance(desc, dict) else (desc or "")
-    # Strip markdown formatting for plain text compatibility
-    desc_text = re.sub(r"\*\*(.+?)\*\*", r"\1", desc_text)   # bold
-    desc_text = re.sub(r"#{1,3}\s+", "", desc_text)           # headers
-    desc_text = re.sub(r"`(.+?)`", r"\1", desc_text)          # inline code
     desc_text = desc_text.strip()
 
     notes = f"Jira: {key} — {jira_url}"
