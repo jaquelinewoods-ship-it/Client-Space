@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Qualtex Asana HTML Backfill
-Converts ## markdown headings to proper HTML headings in all 70 requirement tasks.
+Converts ## markdown to Asana-compatible HTML (no h1/h2 — uses strong + hr).
 
 Usage:
     export ASANA_PAT=your_pat
@@ -16,9 +16,13 @@ if not ASANA_PAT:
 
 SECTION_GID = "1215246319835973"
 
+# Asana html_notes ONLY supports: body, strong, em, u, s, ul, ol, li, p, a, hr
+# h1/h2/h3/code are NOT supported and cause xml_parsing_error
+
 
 def fetch_tasks(section_gid, token):
-    url = f"https://app.asana.com/api/1.0/sections/{section_gid}/tasks?limit=100&opt_fields=gid,name,notes"
+    url = (f"https://app.asana.com/api/1.0/sections/{section_gid}/tasks"
+           f"?limit=100&opt_fields=gid,name,notes")
     req = urllib.request.Request(url)
     req.add_header("Authorization", f"Bearer {token}")
     req.add_header("Accept", "application/json")
@@ -27,26 +31,27 @@ def fetch_tasks(section_gid, token):
 
 
 def sanitise(text):
-    """Remove characters Asana's XML parser rejects."""
-    # Replace arrow and emoji with safe equivalents
+    """Strip characters outside XML 1.0 valid range and normalise specials."""
     text = text.replace("\u2192", "to")   # →
     text = text.replace("\u2013", "-")    # en dash
     text = text.replace("&", "and")
-    # Remove any chars outside XML 1.0 valid range
-    # Valid: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
     cleaned = []
     for char in text:
         code = ord(char)
-        if (code == 0x9 or code == 0xA or code == 0xD or
-                (0x20 <= code <= 0xD7FF) or (0xE000 <= code <= 0xFFFD)):
+        if (code == 0x9 or code == 0xA or code == 0xD
+                or (0x20 <= code <= 0xD7FF)
+                or (0xE000 <= code <= 0xFFFD)):
             cleaned.append(char)
-        # else: drop the character
+        # else: drop (emoji, variation selectors, etc.)
     return "".join(cleaned)
 
 
 def inline(s):
+    """Apply bold formatting only (no <code> — not supported by Asana)."""
     s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
-    s = re.sub(r'`(.+?)`', r'\1', s)
+    s = re.sub(r'`(.+?)`', r'\1', s)   # strip backticks, keep text
+    # Convert markdown links [text](url) to plain text (Asana <a> needs href attr)
+    s = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', s)
     return s
 
 
@@ -55,6 +60,9 @@ def strip_ol_prefix(s):
 
 
 def markdown_to_html(text):
+    """Convert markdown to Asana-compatible HTML.
+    Headings (##) become <p><strong>TEXT</strong></p> with a preceding <hr/>.
+    """
     if not text:
         return "<body></body>"
     text = sanitise(text)
@@ -62,6 +70,7 @@ def markdown_to_html(text):
     html_parts = []
     in_ul = False
     in_ol = False
+    first_heading = True
 
     def close_lists():
         nonlocal in_ul, in_ol
@@ -74,12 +83,15 @@ def markdown_to_html(text):
 
     for line in lines:
         s = line.strip()
-        if s.startswith("## "):
+
+        if s.startswith("## ") or s.startswith("# "):
             close_lists()
-            html_parts.append(f"<h2>{inline(s[3:].strip())}</h2>")
-        elif s.startswith("# "):
-            close_lists()
-            html_parts.append(f"<h1>{inline(s[2:].strip())}</h1>")
+            heading_text = s[3:].strip() if s.startswith("## ") else s[2:].strip()
+            if not first_heading:
+                html_parts.append("<hr/>")
+            first_heading = False
+            html_parts.append(f"<p><strong>{inline(heading_text)}</strong></p>")
+
         elif re.match(r'^\d+\.\s', s):
             if in_ul:
                 html_parts.append("</ul>")
@@ -88,6 +100,7 @@ def markdown_to_html(text):
                 html_parts.append("<ol>")
                 in_ol = True
             html_parts.append(f"<li>{inline(strip_ol_prefix(s))}</li>")
+
         elif s.startswith("* ") or s.startswith("- "):
             if in_ol:
                 html_parts.append("</ol>")
@@ -96,8 +109,10 @@ def markdown_to_html(text):
                 html_parts.append("<ul>")
                 in_ul = True
             html_parts.append(f"<li>{inline(s[2:])}</li>")
+
         elif s == "":
             close_lists()
+
         else:
             close_lists()
             html_parts.append(f"<p>{inline(s)}</p>")
@@ -144,7 +159,7 @@ for task in tasks:
     success, err = update_task(task["gid"], html_notes, ASANA_PAT)
     if success:
         ok += 1
-        print(f"  OK {jira_key or task['gid']}: {task['name'][:55]}")
+        print(f"  OK  {jira_key or task['gid']}: {task['name'][:55]}")
     else:
         fail += 1
         print(f"  FAIL {task['gid']}: {err}")
