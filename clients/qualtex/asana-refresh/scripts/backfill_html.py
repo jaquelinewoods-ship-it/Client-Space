@@ -26,6 +26,24 @@ def fetch_tasks(section_gid, token):
         return json.loads(resp.read())["data"]
 
 
+def sanitise(text):
+    """Remove characters Asana's XML parser rejects."""
+    # Replace arrow and emoji with safe equivalents
+    text = text.replace("\u2192", "to")   # →
+    text = text.replace("\u2013", "-")    # en dash
+    text = text.replace("&", "and")
+    # Remove any chars outside XML 1.0 valid range
+    # Valid: #x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD]
+    cleaned = []
+    for char in text:
+        code = ord(char)
+        if (code == 0x9 or code == 0xA or code == 0xD or
+                (0x20 <= code <= 0xD7FF) or (0xE000 <= code <= 0xFFFD)):
+            cleaned.append(char)
+        # else: drop the character
+    return "".join(cleaned)
+
+
 def inline(s):
     s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
     s = re.sub(r'`(.+?)`', r'\1', s)
@@ -39,7 +57,7 @@ def strip_ol_prefix(s):
 def markdown_to_html(text):
     if not text:
         return "<body></body>"
-    text = text.replace("&", "and")
+    text = sanitise(text)
     lines = text.split("\n")
     html_parts = []
     in_ul = False
@@ -126,10 +144,10 @@ for task in tasks:
     success, err = update_task(task["gid"], html_notes, ASANA_PAT)
     if success:
         ok += 1
-        print(f"  ✅ {jira_key or task['gid']}: {task['name'][:55]}")
+        print(f"  OK {jira_key or task['gid']}: {task['name'][:55]}")
     else:
         fail += 1
-        print(f"  ❌ {task['gid']}: {err}")
+        print(f"  FAIL {task['gid']}: {err}")
     time.sleep(0.25)
 
 print(f"\n{'='*55}")
