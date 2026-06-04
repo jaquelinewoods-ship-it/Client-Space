@@ -7,6 +7,7 @@ Usage:
     export ASANA_PAT=your_pat
     python3 backfill_html.py
 """
+import html
 import json, os, re, sys, time, urllib.request, urllib.error
 
 ASANA_PAT = os.environ.get("ASANA_PAT", "")
@@ -34,6 +35,7 @@ def sanitise(text):
     """Strip characters outside XML 1.0 valid range and normalise specials."""
     text = text.replace("\u2192", "to")   # →
     text = text.replace("\u2013", "-")    # en dash
+    text = text.replace("\u2014", "-")    # em dash
     text = text.replace("&", "and")
     cleaned = []
     for char in text:
@@ -48,6 +50,7 @@ def sanitise(text):
 
 def inline(s):
     """Apply bold formatting only (no <code> — not supported by Asana)."""
+    s = html.escape(s, quote=False)
     s = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', s)
     s = re.sub(r'`(.+?)`', r'\1', s)   # strip backticks, keep text
     # Convert markdown links [text](url) to plain text (Asana <a> needs href attr)
@@ -61,7 +64,7 @@ def strip_ol_prefix(s):
 
 def markdown_to_html(text):
     """Convert markdown to Asana-compatible HTML.
-    Headings (##) become <p><strong>TEXT</strong></p> with a preceding <hr/>.
+    Headings (##) become <strong>TEXT</strong> with a preceding <hr/>.
     """
     if not text:
         return "<body></body>"
@@ -90,7 +93,7 @@ def markdown_to_html(text):
             if not first_heading:
                 html_parts.append("<hr/>")
             first_heading = False
-            html_parts.append(f"<p><strong>{inline(heading_text)}</strong></p>")
+            html_parts.append(f"<strong>{inline(heading_text)}</strong>")
 
         elif re.match(r'^\d+\.\s', s):
             if in_ul:
@@ -115,7 +118,7 @@ def markdown_to_html(text):
 
         else:
             close_lists()
-            html_parts.append(f"<p>{inline(s)}</p>")
+            html_parts.append(inline(s))
 
     close_lists()
     return "<body>" + "\n".join(html_parts) + "</body>"
@@ -148,7 +151,7 @@ for task in tasks:
 
     m = re.search(r"Jira:\s*(QGOMR-\d+)", notes, re.IGNORECASE)
     jira_key = m.group(1) if m else ""
-    jira_ref = f"<p><strong>Jira: {jira_key}</strong></p>" if jira_key else ""
+    jira_ref = f"<strong>Jira: {jira_key}</strong>" if jira_key else ""
 
     body_html = markdown_to_html(notes)
     if jira_ref:
